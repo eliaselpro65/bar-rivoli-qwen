@@ -1,0 +1,826 @@
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { MapPin, Clock, Phone, Mail, Facebook, Instagram, ChevronDown, ChevronUp, Star, Wine, Beer, Coffee } from 'lucide-react';
+
+// Mock data for reviews
+const reviews = [
+  {
+    id: 1,
+    name: "Carlos M.",
+    rating: 5,
+    text: "Excelente bar familiar con una atención inmejorable. Los jueves con jamón gratis son una delicia. ¡Muy recomendable!"
+  },
+  {
+    id: 2,
+    name: "Ana S.",
+    rating: 5,
+    text: "Lugar acogedor con un ambiente muy agradable. El personal es muy amable y los productos son de primera calidad."
+  },
+  {
+    id: 3,
+    name: "Miguel R.",
+    rating: 4,
+    text: "Vengo desde hace años y nunca me decepciona. El gin tonic está espectacular y la bodega de vinos es muy completa."
+  }
+];
+
+// Menu data extracted from the PDF with representative images
+const menuCategories = [
+  {
+    id: "refrescos",
+    name: "Refrescos",
+    icon: <Wine size={24} className="text-[#a8d5a2]" />,
+    image: "https://placehold.co/400x300/2d5a42/a8d5a2?text=Refrescos+y+Bebidas",
+    items: [
+      { name: "Mosto 0'20cl", price: "2'00€" },
+      { name: "Kas", price: "2'50€" },
+      { name: "Nestea", price: "2'50€" },
+      { name: "Zumos", price: "2'50€" },
+      { name: "Batidos", price: "2'50€" },
+      { name: "Seven 7 up", price: "2'50€" },
+      { name: "Acuarius", price: "2'50€" },
+      { name: "Scheppes", price: "2'50€" },
+      { name: "Cocacola", price: "2'50€" },
+      { name: "Lata coca", price: "2'50€" },
+      { name: "Bitter kas", price: "2'50€" }
+    ]
+  },
+  {
+    id: "cervezas",
+    name: "Cervezas",
+    icon: <Beer size={24} className="text-[#a8d5a2]" />,
+    image: "https://placehold.co/400x300/2d5a42/a8d5a2?text=Selección+de+Cervezas",
+    items: [
+      { name: "Alhambra Corto", price: "1'50€" },
+      { name: "Mahou sin 1/5 tostada", price: "2'00€" },
+      { name: "Cana 20cl", price: "1'80€" },
+      { name: "Cana 33cl", price: "2'50€" },
+      { name: "Mahou 1/5", price: "2'00€" },
+      { name: "Alhambra 1/5", price: "1'80€" },
+      { name: "Alhambra sin 1/5", price: "1'80€" },
+      { name: "Alhambra 1/3", price: "2'50€" },
+      { name: "Alhambra sin 1/3", price: "2'50€" },
+      { name: "Alhambra 1/3 verde", price: "3'50€" },
+      { name: "Alhambra 1/3 roja", price: "4'00€" },
+      { name: "Lata 33cl", price: "2'00€" },
+      { name: "Ambar 1/5", price: "1'80€" },
+      { name: "Ambar 1/3", price: "3'00€" },
+      { name: "Amstel sin 1/5", price: "1'80€" },
+      { name: "Amstel 1/5", price: "1'80€" },
+      { name: "Amstel oro 1/3", price: "3'50€" },
+      { name: "Radler 1/5", price: "1'80€" },
+      { name: "Radler 1/3", price: "3'00€" },
+      { name: "Mahou sin 1/3 tostada", price: "3'00€" },
+      { name: "Mahou 1/3", price: "3'00€" },
+      { name: "Mahou maestra 1/3", price: "3'00€" },
+      { name: "Red vintage 1906 1/3", price: "3'00€" },
+      { name: "Paulaner 0'5l", price: "4'50€" },
+      { name: "Woldan 1/3l", price: "3'00€" }
+    ]
+  },
+  {
+    id: "vinos",
+    name: "Vinos",
+    icon: <Wine size={24} className="text-[#a8d5a2]" />,
+    image: "https://placehold.co/400x300/2d5a42/a8d5a2?text=Nuestra+Bodega+de+Vinos",
+    items: [
+      { name: "Valparaiso", price: "2'00€" },
+      { name: "Camchales", price: "2'00€" },
+      { name: "Carraminbre", price: "2'00€" },
+      { name: "Anares", price: "2'00€" },
+      { name: "Lan", price: "2'50€" },
+      { name: "Monte real", price: "2'50€" },
+      { name: "Izadi", price: "2'50€" },
+      { name: "Vivanco", price: "2'50€" },
+      { name: "Resalso", price: "2'50€" },
+      { name: "Azpilicueta", price: "2'50€" },
+      { name: "Lagar de isilla", price: "2'50€" },
+      { name: "Luis canas", price: "2'50€" },
+      { name: "Amaren", price: "2'50€" },
+      { name: "Hito", price: "2'50€" },
+      { name: "Beronia", price: "2'50€" },
+      { name: "Vina albina", price: "2'50€" },
+      { name: "Moscato", price: "2'50€" },
+      { name: "Campo de delibes", price: "2'00€" },
+      { name: "Vizhoja", price: "2'50€" },
+      { name: "Circe", price: "3'00€" },
+      { name: "Las campanas (rosado)", price: "2'00€" }
+    ]
+  },
+  {
+    id: "gin-tonic",
+    name: "Gin Tonic",
+    icon: <Wine size={24} className="text-[#a8d5a2]" />,
+    image: "https://placehold.co/400x300/2d5a42/a8d5a2?text=Gin+Tonic+Premium",
+    items: [
+      { name: "Larios", price: "5'00€" },
+      { name: "Gordons", price: "5'00€" },
+      { name: "M6", price: "6'00€" },
+      { name: "Beefeater", price: "6'00€" },
+      { name: "Bombay blanca", price: "6'00€" },
+      { name: "Tanqueray", price: "6'00€" },
+      { name: "Ampersand", price: "6'00€" },
+      { name: "Bombay azul", price: "7'00€" },
+      { name: "Seagram's", price: "7'00€" },
+      { name: "Citadelle", price: "8'00€" },
+      { name: "Hendrick's", price: "8'00€" },
+      { name: "Brockmans", price: "8'00€" },
+      { name: "Ish", price: "8'00€" },
+      { name: "Nordes", price: "8'00€" },
+      { name: "Bulldog", price: "8'00€" },
+      { name: "Martin miller", price: "8'00€" },
+      { name: "M5", price: "10'00€" },
+      { name: "Gin mare", price: "10'00€" },
+      { name: "Le tribute", price: "10'00€" }
+    ]
+  },
+  {
+    id: "licores",
+    name: "Licores",
+    icon: <Wine size={24} className="text-[#a8d5a2]" />,
+    image: "https://placehold.co/400x300/2d5a42/a8d5a2?text=Selección+de+Licores",
+    items: [
+      { name: "Moscatel", price: "2'00€" },
+      { name: "Soberano s'm", price: "2'50€" },
+      { name: "Magno s'm", price: "3'00€" },
+      { name: "Carlos III", price: "3'00€" },
+      { name: "Castellana s'm", price: "3'00€" },
+      { name: "Pacharan", price: "3'00€" },
+      { name: "Ponche caballero", price: "3'00€" },
+      { name: "Licor hiervas", price: "3'00€" },
+      { name: "Licor manzana", price: "3'00€" },
+      { name: "Licor melocoton", price: "3'00€" },
+      { name: "Crema orujo", price: "4'00€" },
+      { name: "Baileys", price: "5'00€" },
+      { name: "Frangelico", price: "4'00€" },
+      { name: "Cointreau", price: "4'00€" },
+      { name: "Beefeater s'm", price: "4'00€" },
+      { name: "Chupito hiervas", price: "2'00€" },
+      { name: "Conac 1866", price: "12'00€" },
+      { name: "Manzana sin", price: "2'50€" },
+      { name: "Barcelo s'm", price: "4'00€" },
+      { name: "Licor cafe", price: "4'00€" }
+    ]
+  },
+  {
+    id: "cafes",
+    name: "Cafés y Aguas",
+    icon: <Coffee size={24} className="text-[#a8d5a2]" />,
+    image: "https://placehold.co/400x300/2d5a42/a8d5a2?text=Cafés+y+Aguas",
+    items: [
+      { name: "Cafe solo", price: "1'40€" },
+      { name: "Cafe cortado", price: "1'40€" },
+      { name: "Cafe con leche", price: "1'50€" },
+      { name: "Cafe descafeinado", price: "1'50€" },
+      { name: "Infusiones", price: "1'50€" },
+      { name: "Colacao", price: "2'00€" },
+      { name: "Carajillo", price: "2'50€" },
+      { name: "Quemadillo", price: "2'50€" },
+      { name: "Solan cabras 0'33L", price: "1'50€" },
+      { name: "Solan cabras gas 0'33L", price: "2'50€" },
+      { name: "Montepinos 0'33L", price: "1'50€" },
+      { name: "Vichy catalan 300ml", price: "2'50€" },
+      { name: "Agua 1'5L", price: "2'50€" }
+    ]
+  }
+];
+
+const App = () => {
+  const [activeSection, setActiveSection] = useState('hero');
+  const [menuCategory, setMenuCategory] = useState('refrescos');
+  const [faqOpen, setFaqOpen] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const businessInfo = {
+    name: "Café Rivoli",
+    address: "Carretera Logroño N-34, Soria",
+    phone: "639 868 446",
+    email: "vicentemartinbueno@gmail.com",
+    facebook: "https://www.facebook.com/cafebarrivoli/?locale=es_ES",
+    instagram: "https://www.instagram.com/cafe_bar_rivoli/",
+    hours: [
+      { day: "Lunes - Miércoles", time: "8:00 - 16:00 / 19:00 - 23:30" },
+      { day: "Jueves", time: "8:00 - 16:00 / 19:00 - 00:30 (¡JAMÓN GRATIS con cualquier consumición!)" },
+      { day: "Viernes - Sábado", time: "8:00 - 01:00" },
+      { day: "Domingo", time: "9:00 - 15:00" }
+    ]
+  };
+
+  const faqItems = [
+    {
+      question: "¿Ofrecen servicio de reserva de mesas?",
+      answer: "No ofrecemos servicio de reservas. Nuestro bar funciona por orden de llegada, así que te recomendamos venir con tiempo, especialmente los fines de semana."
+    },
+    {
+      question: "¿Tienen opciones sin gluten o para vegetarianos?",
+      answer: "Sí, tenemos varias opciones para dietas especiales. Nuestro jamón ibérico es 100% puro de bellota, y contamos con bebidas sin gluten y snacks adecuados para vegetarianos. Pregunta a nuestro personal para más información."
+    },
+    {
+      question: "¿Puedo comprar botellas de licor o vino para llevar?",
+      answer: "Sí, ofrecemos la posibilidad de comprar algunas de nuestras mejores selecciones de licores y vinos para llevar. Consulta nuestro catálogo especial para llevar."
+    },
+    {
+      question: "¿Organizan eventos privados?",
+      answer: "Sí, para grupos grandes podemos organizar eventos privados fuera del horario normal de apertura. Ponte en contacto con nosotros para discutir las posibilidades."
+    }
+  ];
+
+  // Intersection Observer for active section
+  useEffect(() => {
+    const sections = document.querySelectorAll('section');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    sections.forEach(section => {
+      observer.observe(section);
+    });
+
+    return () => {
+      sections.forEach(section => {
+        observer.unobserve(section);
+      });
+    };
+  }, []);
+
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      window.scrollTo({
+        top: element.offsetTop - 80,
+        behavior: 'smooth'
+      });
+      setIsMenuOpen(false);
+    }
+  };
+
+  return (
+    <div className="font-sans bg-[#f8f5f0] text-[#3a3a3a]">
+      {/* Header with navigation */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#1a3a2a] shadow-lg">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center py-4">
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="text-white text-2xl font-bold tracking-wider"
+            >
+              Café Rivoli
+            </motion.div>
+            
+            {/* Desktop Navigation */}
+            <nav className="hidden md:block">
+              <ul className="flex space-x-8">
+                {['hero', 'menu', 'jamones', 'gallery', 'about', 'reviews', 'faq', 'contact'].map((section) => (
+                  <li key={section}>
+                    <button
+                      onClick={() => scrollToSection(section)}
+                      className={`text-white font-medium transition-colors duration-300 ${
+                        activeSection === section ? 'text-[#a8d5a2] border-b-2 border-[#a8d5a2]' : 'hover:text-[#a8d5a2]'
+                      }`}
+                    >
+                      {section === 'hero' ? 'Inicio' : 
+                       section === 'menu' ? 'Menú' :
+                       section === 'jamones' ? 'Jamón' :
+                       section === 'gallery' ? 'Galería' :
+                       section === 'about' ? 'Sobre Nosotros' :
+                       section === 'reviews' ? 'Reseñas' :
+                       section === 'faq' ? 'FAQ' :
+                       'Contacto'}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            
+            {/* Mobile menu button */}
+            <button 
+              className="md:hidden text-white"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label={isMenuOpen ? "Cerrar menú" : "Abrir menú"}
+            >
+              {isMenuOpen ? (
+                <ChevronUp size={28} />
+              ) : (
+                <ChevronDown size={28} />
+              )}
+            </button>
+          </div>
+          
+          {/* Mobile Navigation */}
+          {isMenuOpen && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden pb-4"
+            >
+              <ul className="space-y-3">
+                {['hero', 'menu', 'jamones', 'gallery', 'about', 'reviews', 'faq', 'contact'].map((section) => (
+                  <li key={section}>
+                    <button
+                      onClick={() => scrollToSection(section)}
+                      className={`block w-full text-left text-white font-medium py-2 px-4 rounded transition-colors ${
+                        activeSection === section 
+                          ? 'bg-[#2d5a42] text-[#a8d5a2]' 
+                          : 'hover:bg-[#2d5a42]'
+                      }`}
+                    >
+                      {section === 'hero' ? 'Inicio' : 
+                       section === 'menu' ? 'Menú' :
+                       section === 'jamones' ? 'Jamón' :
+                       section === 'gallery' ? 'Galería' :
+                       section === 'about' ? 'Sobre Nosotros' :
+                       section === 'reviews' ? 'Reseñas' :
+                       section === 'faq' ? 'FAQ' :
+                       'Contacto'}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          )}
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section id="hero" className="pt-32 pb-20 bg-gradient-to-r from-[#1a3a2a] to-[#2d5a42] text-white">
+        <div className="container mx-auto px-4 text-center">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-4xl md:text-6xl font-bold mb-6 tracking-tight"
+          >
+            Bienvenidos a Café Rivoli
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto"
+          >
+            Un rincón tradicional en el corazón de Soria con los mejores productos y un ambiente familiar
+          </motion.p>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="bg-[#a8d5a2] text-[#1a3a2a] inline-block px-6 py-3 rounded-full font-semibold text-lg shadow-lg"
+          >
+            🥓 ¡Los jueves jamón GRATIS con cualquier consumición!
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Menu Section with Visual Categories */}
+      <section id="menu" className="py-20 bg-[#f8f5f0]">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold text-[#1a3a2a] mb-4">Nuestro Menú</h2>
+            <div className="w-24 h-1 bg-[#a8d5a2] mx-auto mb-4"></div>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Descubre nuestra selección de bebidas y aperitivos con los mejores precios de Soria. 
+              Precios actualizados a Enero 2025 (IVA incluido).
+            </p>
+          </motion.div>
+
+          <div className="flex flex-col md:flex-row gap-8">
+            {/* Menu categories sidebar */}
+            <div className="md:w-1/4">
+              <div className="bg-white rounded-xl shadow-md p-4 sticky top-32">
+                <h3 className="text-lg font-bold text-[#1a3a2a] mb-4 pb-2 border-b border-[#a8d5a2]">
+                  Categorías
+                </h3>
+                <ul className="space-y-3">
+                  {menuCategories.map((category) => (
+                    <li key={category.id}>
+                      <button
+                        onClick={() => setMenuCategory(category.id)}
+                        className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all ${
+                          menuCategory === category.id
+                            ? 'bg-[#a8d5a2] text-[#1a3a2a] font-medium shadow-md'
+                            : 'hover:bg-[#e8f3e8] text-gray-700'
+                        }`}
+                      >
+                        {category.icon}
+                        <span>{category.name}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Visual menu items with photos */}
+            <div className="md:w-3/4">
+              {menuCategories.map((category) => (
+                category.id === menuCategory && (
+                  <motion.div
+                    key={category.id}
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    className="bg-white rounded-xl shadow-md overflow-hidden"
+                  >
+                    {/* Category image header */}
+                    <div className="h-64 md:h-80 overflow-hidden">
+                      <img 
+                        src={category.image} 
+                        alt={category.name} 
+                        className="w-full h-full object-cover transition-transform hover:scale-110"
+                      />
+                    </div>
+                    
+                    <div className="p-6">
+                      <h3 className="text-2xl font-bold text-[#1a3a2a] mb-6 flex items-center gap-3">
+                        {category.name}
+                      </h3>
+                      
+                      {/* Grid of products with better visual presentation */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {category.items.map((item, index) => (
+                          <div 
+                            key={index} 
+                            className="flex justify-between items-center py-3 px-4 bg-[#f8f5f0] rounded-lg hover:bg-[#e8f3e8] transition-colors"
+                          >
+                            <span className="font-medium text-gray-800">{item.name}</span>
+                            <span className="font-bold text-[#1a3a2a] bg-white px-3 py-1 rounded-full shadow-sm">
+                              {item.price}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="mt-8 pt-6 border-t border-[#e0e8e0] text-center">
+                        <p className="text-gray-600 italic">
+                          ¡Pregunta por nuestras ofertas especiales y recomendaciones del día!
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Jamón Section */}
+      <section id="jamones" className="py-20 bg-[#1a3a2a] text-white">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold mb-4">Nuestro Jamón</h2>
+            <div className="w-24 h-1 bg-[#a8d5a2] mx-auto mb-4"></div>
+            <p className="text-gray-200 max-w-2xl mx-auto text-lg">
+              En Café Rivoli nos enorgullece servir jamón ibérico de la más alta calidad, 
+              cortado a mano al momento para garantizar su máximo sabor y textura.
+            </p>
+          </motion.div>
+
+          <div className="bg-[#2d5a42] rounded-2xl p-8 md:p-12 max-w-4xl mx-auto">
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              <div className="md:w-1/2">
+                <div className="bg-[#1a3a2a] border-2 border-[#a8d5a2] rounded-xl w-full h-80 overflow-hidden">
+                  <img 
+                    src="https://placehold.co/600x400/2d5a42/a8d5a2?text=Jamón+Ibérico+de+Primera+Calidad" 
+                    alt="Jamón Ibérico" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+              <div className="md:w-1/2 text-center md:text-left">
+                <h3 className="text-2xl font-bold mb-4 text-[#a8d5a2]">¡Jamón GRATIS los jueves!</h3>
+                <p className="text-lg mb-6">
+                  Todos los jueves, con cualquier consumición (bebida o café), 
+                  te invitamos a disfrutar de nuestro jamón ibérico cortado a cuchillo.
+                </p>
+                <div className="bg-[#a8d5a2] text-[#1a3a2a] inline-block px-6 py-3 rounded-full font-semibold text-lg">
+                  ¡Ven a disfrutar de esta delicia los jueves!
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Gallery Section with more photos */}
+      <section id="gallery" className="py-20 bg-[#f8f5f0]">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold text-[#1a3a2a] mb-4">Galería</h2>
+            <div className="w-24 h-1 bg-[#a8d5a2] mx-auto mb-4"></div>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Disfruta de las imágenes de nuestro local, nuestra selección de productos y momentos especiales.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              { src: "https://placehold.co/600x400/2d5a42/a8d5a2?text=Interior+del+Café+Rivoli", title: "Nuestro Acogedor Interior" },
+              { src: "https://placehold.co/600x400/2d5a42/a8d5a2?text=Barras+de+Bebidas+y+Cócteles", title: "Nuestra Barra" },
+              { src: "https://placehold.co/600x400/2d5a42/a8d5a2?text=Selección+de+Vinos+y+Licores", title: "Nuestra Bodega" },
+              { src: "https://placehold.co/600x400/2d5a42/a8d5a2?text=Jamón+Ibérico+Cortado+a+Mano", title: "Jamón de Primera Calidad" },
+              { src: "https://placehold.co/600x400/2d5a42/a8d5a2?text=Terraza+(Próximamente)", title: "Terraza (Próximamente)" },
+              { src: "https://placehold.co/600x400/2d5a42/a8d5a2?text=Equipo+del+Café+Rivoli", title: "Nuestro Equipo" }
+            ].map((photo, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-white rounded-xl shadow-md overflow-hidden group"
+              >
+                <div className="h-64 overflow-hidden">
+                  <img 
+                    src={photo.src} 
+                    alt={photo.title} 
+                    className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                  />
+                </div>
+                <div className="p-4 bg-[#f0f9f1]">
+                  <h3 className="font-bold text-lg text-[#1a3a2a]">{photo.title}</h3>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+          
+          <div className="text-center mt-12">
+            <p className="text-gray-600 italic">
+              Pronto actualizaremos con fotografías reales de nuestro establecimiento y productos.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* About Section */}
+      <section id="about" className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold text-[#1a3a2a] mb-4">Sobre Nosotros</h2>
+            <div className="w-24 h-1 bg-[#a8d5a2] mx-auto mb-4"></div>
+          </motion.div>
+
+          <div className="max-w-4xl mx-auto">
+            <div className="flex flex-col md:flex-row items-center gap-12">
+              <div className="md:w-1/2">
+                <div className="bg-[#e8f3e8] border-2 border-[#a8d5a2] rounded-xl w-full h-80 overflow-hidden">
+                  <img 
+                    src="https://placehold.co/600x400/2d5a42/a8d5a2?text=Café+Rivoli+en+Soria" 
+                    alt="Café Rivoli" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+              <div className="md:w-1/2">
+                <h3 className="text-2xl font-bold text-[#1a3a2a] mb-4">Nuestra Historia</h3>
+                <p className="text-gray-700 mb-4">
+                  Café Rivoli es un establecimiento familiar con años de tradición en Soria. Fundado por Vicente Martín Bueno, 
+                  nuestro bar se ha convertido en un punto de encuentro para los vecinos y visitantes que buscan un lugar 
+                  acogedor con un servicio cercano y auténtico.
+                </p>
+                <p className="text-gray-700 mb-4">
+                  Nos enorgullece mantener las tradiciones mientras nos adaptamos a los tiempos modernos, 
+                  ofreciendo productos de calidad a precios justos en un ambiente familiar y relajado.
+                </p>
+                <p className="text-gray-700 italic">
+                  "En Café Rivoli no solo servimos bebidas y aperitivos, creamos momentos y recuerdos con cada visita."
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Reviews Section */}
+      <section id="reviews" className="py-20 bg-[#f0f9f1]">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold text-[#1a3a2a] mb-4">Lo que dicen nuestros clientes</h2>
+            <div className="w-24 h-1 bg-[#a8d5a2] mx-auto mb-4"></div>
+          </motion.div>
+
+          <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+            {reviews.map((review, index) => (
+              <motion.div
+                key={review.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-white rounded-xl shadow-md p-6 border border-[#e0e8e0] hover:shadow-lg transition-shadow"
+              >
+                <div className="flex items-center mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <Star 
+                      key={i} 
+                      size={20} 
+                      className={i < review.rating ? "text-[#ffc107]" : "text-gray-300"} 
+                      fill={i < review.rating ? "#ffc107" : "none"} 
+                    />
+                  ))}
+                </div>
+                <p className="text-gray-700 mb-4 italic">"{review.text}"</p>
+                <div className="flex items-center">
+                  <div className="bg-[#1a3a2a] text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg mr-3">
+                    {review.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="font-bold text-[#1a3a2a]">{review.name}</p>
+                    <p className="text-sm text-gray-500">Cliente habitual</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold text-[#1a3a2a] mb-4">Preguntas Frecuentes</h2>
+            <div className="w-24 h-1 bg-[#a8d5a2] mx-auto mb-4"></div>
+          </motion.div>
+
+          <div className="max-w-3xl mx-auto">
+            {faqItems.map((item, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="border-b border-gray-200 py-4"
+              >
+                <button
+                  onClick={() => setFaqOpen(faqOpen === index ? null : index)}
+                  className="flex justify-between items-center w-full text-left"
+                >
+                  <span className="font-bold text-lg text-[#1a3a2a]">{item.question}</span>
+                  <ChevronDown 
+                    size={24} 
+                    className={`transition-transform duration-300 ${
+                      faqOpen === index ? 'transform rotate-180 text-[#a8d5a2]' : 'text-[#1a3a2a]'
+                    }`}
+                  />
+                </button>
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{
+                    opacity: faqOpen === index ? 1 : 0,
+                    height: faqOpen === index ? "auto" : 0
+                  }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <p className="text-gray-600 mt-3 pl-6 pr-6">{item.answer}</p>
+                </motion.div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section id="contact" className="py-20 bg-[#1a3a2a] text-white">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold mb-4">Contáctanos</h2>
+            <div className="w-24 h-1 bg-[#a8d5a2] mx-auto mb-4"></div>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-6xl mx-auto">
+            {/* Contact Info */}
+            <div className="bg-[#2d5a42] rounded-xl p-8 text-center">
+              <div className="bg-[#a8d5a2] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                <MapPin size={28} className="text-[#1a3a2a]" />
+              </div>
+              <h3 className="text-xl font-bold mb-2">Dónde Estamos</h3>
+              <p className="text-gray-200 mb-4">{businessInfo.address}</p>
+              <div className="h-64 bg-[#1a3a2a] border-2 border-[#a8d5a2] rounded-xl overflow-hidden">
+                <img 
+                  src="https://placehold.co/600x400/2d5a42/a8d5a2?text=Mapa+de+Ubicación" 
+                  alt="Ubicación Café Rivoli" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+
+            {/* Hours */}
+            <div className="bg-[#2d5a42] rounded-xl p-8">
+              <div className="bg-[#a8d5a2] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Clock size={28} className="text-[#1a3a2a]" />
+              </div>
+              <h3 className="text-xl font-bold text-center mb-6">Horarios</h3>
+              <div className="space-y-3">
+                {businessInfo.hours.map((hour, index) => (
+                  <div key={index} className={`flex justify-between border-b border-[#3a6a52] pb-2 last:border-0 ${index === 1 ? 'text-[#a8d5a2]' : ''}`}>
+                    <span className="font-medium">{hour.day}</span>
+                    <span>{hour.time}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Contact Methods */}
+            <div className="bg-[#2d5a42] rounded-xl p-8">
+              <div className="bg-[#a8d5a2] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Phone size={28} className="text-[#1a3a2a]" />
+              </div>
+              <h3 className="text-xl font-bold text-center mb-6">Contacto</h3>
+              
+              <div className="space-y-4">
+                <div className="flex items-center bg-white/10 p-3 rounded-lg">
+                  <Phone size={20} className="mr-3 text-[#a8d5a2]" />
+                  <span className="font-medium">{businessInfo.phone}</span>
+                </div>
+                <div className="flex items-center bg-white/10 p-3 rounded-lg">
+                  <Mail size={20} className="mr-3 text-[#a8d5a2]" />
+                  <span className="font-medium break-all">{businessInfo.email}</span>
+                </div>
+                
+                <div className="mt-8 pt-6 border-t border-[#3a6a52]">
+                  <h4 className="font-bold mb-4 text-center">Síguenos en redes</h4>
+                  <div className="flex justify-center space-x-6">
+                    <a 
+                      href={businessInfo.facebook} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="w-14 h-14 rounded-full bg-white flex items-center justify-center hover:bg-[#a8d5a2] transition-colors"
+                    >
+                      <Facebook size={28} className="text-[#1a3a2a]" />
+                    </a>
+                    <a 
+                      href={businessInfo.instagram} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="w-14 h-14 rounded-full bg-white flex items-center justify-center hover:bg-[#a8d5a2] transition-colors"
+                    >
+                      <Instagram size={28} className="text-[#1a3a2a]" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-[#0f2517] text-[#a8d5a2] py-8">
+        <div className="container mx-auto px-4 text-center">
+          <p>© {new Date().getFullYear()} Café Rivoli. Todos los derechos reservados.</p>
+          <p className="mt-2 text-sm">Ubicado en Carretera Logroño N-34, Soria</p>
+          <p className="mt-1 text-sm">Precios actualizados a Enero 2025 (IVA incluido)</p>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default App;
